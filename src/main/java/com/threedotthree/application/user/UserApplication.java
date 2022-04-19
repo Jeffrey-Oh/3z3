@@ -164,6 +164,11 @@ public class UserApplication {
 
         User user = userFindSpecification.findByToken(request);
 
+        // 이미 스크랩 했다면 중지
+        List<ScrapCalc> scrapCalcList = user.getScrapCalcList();
+        if (scrapCalcList != null && scrapCalcList.size() > 0)
+            throw new AlreadyDataException("이미 스크랩된 회원입니다.", "scrap");
+
         UserViewDTO userViewDTO = modelMapper.map(user, UserViewDTO.class);
         userViewDTO.setRegNo(SecurityUtil.strToDecrypt(user.getRegNo()));
 
@@ -231,6 +236,70 @@ public class UserApplication {
         }
 
         return scrapRestAPIInfoDTO;
+
+    }
+
+    /**
+     * 환급액 계산
+     * @param request : HttpServletRequest
+     * @return RefundDTO
+     */
+    public RefundDTO refund(HttpServletRequest request) {
+
+        User user = userFindSpecification.findByToken(request);
+
+        List<ScrapCalc> scrapCalcList = user.getScrapCalcList();
+
+        if (scrapCalcList == null || scrapCalcList.size() == 0)
+            throw new BadRequestApiException("유저 스크랩 먼저 실행해주세요.", "scrap");
+
+        long income = 0;
+        long tax = 0;
+
+        for (ScrapCalc scrapCalc : scrapCalcList) {
+            income += scrapCalc.getIncome();
+            tax += scrapCalc.getTax();
+        }
+
+        long limit; // 한도
+        long deduction; // 공제
+        long refund; // 환급
+
+        // 한도 계산
+        if (income <= 33000000) {
+            // 3300만원 이하 - 74만원
+            limit = 740000;
+        } else if (income <= 70000000) {
+            // 3300만원 초과 7000만원 이하
+            // 74만원 - [(총급여액 -3,300만원) x 0.008]
+            // 다만, 위 금액이 66만원 보다 적은 경우 66만원
+            long temp = (long) (740000 - ( (income - 33000000) * 0.008 ));
+            limit = temp > 660000 ? temp : 660000;
+        } else {
+            // 66만원 - [(총급여액 -7,000만원) x 1/2 ]
+            // 다만, 위 금액이 50만원 보다 적은 경우 50만원
+            long temp = (long) (660000 - ( (income - 70000000) * 0.5 ));
+            limit = temp > 500000 ? temp : 500000;
+        }
+
+        // 공제 계산
+        if (tax <= 1300000) {
+            // 산출세액의 100분의 55
+            deduction = (long) (tax * 0.55);
+        } else {
+            // 71만 5천원 + (130만원을 초과하는 금액의 100분의 30)
+            deduction = (long) (715000 + ( (tax - 1300000) * 0.3 ));
+        }
+
+        // 환급 계산
+        refund = Math.min(limit, deduction);
+
+        return RefundDTO.builder()
+            .이름(user.name)
+            .한도(Utils.convertHangul(String.valueOf(limit)))
+            .공제액(Utils.convertHangul(String.valueOf(deduction)))
+            .환급액(Utils.convertHangul(String.valueOf(refund)))
+            .build();
 
     }
 
