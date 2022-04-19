@@ -1,9 +1,12 @@
 package com.threedotthree.presentation.szs;
 
-import com.threedotthree.application.response.SignUpResponse;
+import com.threedotthree.application.response.dto.LoginResultDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
 import com.threedotthree.application.user.UserApplication;
+import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
+import com.threedotthree.presentation.szs.response.LoginResponse;
+import com.threedotthree.presentation.szs.response.SignUpResponse;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,15 @@ public class SzsController {
 
         SignUpResultDTO signUpResultDTO = userApplication.signUp(request);
         return new SignUpResponse(signUpResultDTO);
+    }
+
+    @ApiOperation(value = "로그인")
+    @PostMapping(value = "/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        log.info("Request : {}", request);
+
+        LoginResultDTO loginResultDTO = userApplication.login(request);
+        return new LoginResponse(loginResultDTO);
     }
 
 }

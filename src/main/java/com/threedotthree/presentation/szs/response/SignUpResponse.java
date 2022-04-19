@@ -1,4 +1,4 @@
-package com.threedotthree.application.response;
+package com.threedotthree.presentation.szs.response;
 
 import com.threedotthree.application.response.dto.SignUpResultDTO;
 import com.threedotthree.presentation.response.SuccessResponse;

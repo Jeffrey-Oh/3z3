@@ -1,12 +1,17 @@
 package com.threedotthree.application.user;
 
 
+import com.threedotthree.application.response.dto.LoginResultDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
 import com.threedotthree.domain.model.user.User;
+import com.threedotthree.domain.model.user.UserFindSpecification;
 import com.threedotthree.domain.model.user.UserJpaRepository;
 import com.threedotthree.infrastructure.exception.AlreadyDataException;
+import com.threedotthree.infrastructure.exception.BadRequestApiException;
 import com.threedotthree.infrastructure.exception.UnauthorizedException;
+import com.threedotthree.infrastructure.jwt.JwtTokenUtil;
 import com.threedotthree.infrastructure.utils.SecurityUtil;
+import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +24,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserApplication {
 
+    private final JwtTokenUtil jwtTokenUtil;
+
     private final UserJpaRepository userJpaRepository;
+    private final UserFindSpecification userFindSpecification;
 
     /**
      * 회원가입
@@ -66,6 +74,36 @@ public class UserApplication {
                 throw new AlreadyDataException("이미 회원가입된 정보가 존재합니다.", "user");
         } else throw new UnauthorizedException("회원가입 권한이 없습니다.");
 
+    }
+
+    /**
+     * 로그인
+     * @param request : 로그인 정보
+     * @return LoginResultDTO
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public LoginResultDTO login(LoginRequest request) {
+
+        // 회원가입 여부
+        User user = userFindSpecification.findByUserId(request.getUserId());
+
+        // 비밀번호 확인
+        if (!user.passwordVerify(request.getPassword()))
+            throw new BadRequestApiException("비밀번호가 일치하지 않습니다.", "password");
+
+        String accessToken = jwtTokenUtil.createAccessToken(user.getUserSeqId(), "ROLE_USER");
+        String refreshToken = jwtTokenUtil.createRefreshToken(user.getUserSeqId(), "ROLE_USER");
+
+        // refreshToken 업데이트
+        user.refreshTokenUpdate(refreshToken);
+
+        return LoginResultDTO.builder()
+            .userSeqId(user.getUserSeqId())
+            .userId(user.getUserId())
+            .name(user.getName())
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .build();
     }
 
 }

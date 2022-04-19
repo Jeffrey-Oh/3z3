@@ -1,11 +1,15 @@
 package com.threedotthree.szs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.threedotthree.application.response.dto.LoginResultDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.infrastructure.exception.AlreadyDataException;
+import com.threedotthree.infrastructure.exception.BadRequestApiException;
+import com.threedotthree.infrastructure.exception.NotFoundDataException;
 import com.threedotthree.infrastructure.exception.UnauthorizedException;
 import com.threedotthree.presentation.szs.SzsController;
+import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +104,8 @@ public class SzsControllerTest {
 
         // then
         result.andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("rt").value(401));
+            .andExpect(jsonPath("rt").value(401))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThat(acceptUser).isFalse();
         verify(userApplication).signUp(any(SignUpRequest.class));
@@ -132,10 +137,103 @@ public class SzsControllerTest {
 
         // then
         result.andExpect(status().isConflict())
-            .andExpect(jsonPath("rt").value(409));
+            .andExpect(jsonPath("rt").value(409))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThat(acceptUser).isTrue();
         verify(userApplication).signUp(any(SignUpRequest.class));
+
+    }
+
+    @Test
+    public void 로그인_200() throws Exception {
+
+        LoginResultDTO loginResultDTO = LoginResultDTO.builder()
+            .userSeqId(1)
+            .userId("test")
+            .name("홍길동")
+            .accessToken("accessToken")
+            .refreshToken("refreshToken")
+            .build();
+
+        // given
+        given(userApplication.login(any(LoginRequest.class))).willReturn(loginResultDTO);
+
+        // when
+        LoginRequest request = LoginRequest.builder()
+            .userId("test")
+            .password("qlqjs123")
+            .build();
+
+        ResultActions result = mockMvc.perform(
+            post("/szs/login")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(200))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).login(any(LoginRequest.class));
+
+    }
+
+    @Test
+    public void 로그인_400() throws Exception {
+
+        // given
+        doThrow(new BadRequestApiException("")).when(userApplication).login(any(LoginRequest.class));
+
+        // when
+        LoginRequest request = LoginRequest.builder()
+            .userId("test")
+            .password("qlqjs1234")
+            .build();
+
+        ResultActions result = mockMvc.perform(
+            post("/szs/login")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isBadRequest())
+            .andExpect(jsonPath("rt").value(400))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).login(any(LoginRequest.class));
+
+    }
+
+    @Test
+    public void 로그인_422() throws Exception {
+
+        // given
+        doThrow(new NotFoundDataException("")).when(userApplication).login(any(LoginRequest.class));
+
+        // when
+        LoginRequest request = LoginRequest.builder()
+            .userId("삼쩜삼")
+            .password("qlqjs123")
+            .build();
+
+        ResultActions result = mockMvc.perform(
+            post("/szs/login")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(jsonPath("rt").value(422))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).login(any(LoginRequest.class));
 
     }
 
