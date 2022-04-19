@@ -1,6 +1,6 @@
 package com.threedotthree.application.response.dto;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.util.List;
@@ -13,28 +13,28 @@ import java.util.List;
 @ToString
 public class ScrapRestAPIDetail {
 
-    @ApiParam(value = "scrap001")
+    @Schema(name = "scrap001", description = "scrap001")
     private List<Scrap001> scrap001;
 
-    @ApiParam(value = "scrap002")
+    @Schema(name = "scrap002", description = "scrap002")
     private List<Scrap002> scrap002;
 
-    @ApiParam(value = "scrap003")
+    @Schema(name = "scrap003", description = "scrap003")
     private List<Scrap003> scrap003;
 
-    @ApiParam(value = "scrap004")
+    @Schema(name = "scrap004", description = "scrap004")
     private List<Scrap004> scrap004;
 
-    @ApiParam(value = "errMsg")
+    @Schema(name = "errMsg", description = "errMsg", example = "에러 메시지")
     private String errMsg;
 
-    @ApiParam(value = "company", example = "삼쩜삼")
+    @Schema(name = "company", description = "company", example = "삼쩜삼")
     private String company;
 
-    @ApiParam(value = "svcCd", example = "test01")
+    @Schema(name = "svcCd", description = "svcCd", example = "test01")
     private String svcCd;
 
-    @ApiParam(value = "userId", example = "1")
+    @Schema(name = "userId", description = "userId", example = "1")
     private String userId;
 
 }

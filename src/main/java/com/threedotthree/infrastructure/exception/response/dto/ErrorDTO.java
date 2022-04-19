@@ -10,8 +10,10 @@ import lombok.*;
 @Builder
 public class ErrorDTO {
 
+    @Schema(name = "field", description = "에러 필드")
     private String field;
 
+    @Schema(name = "message", description = "에러 메시지", required = true)
     private String message;
 
     @Override

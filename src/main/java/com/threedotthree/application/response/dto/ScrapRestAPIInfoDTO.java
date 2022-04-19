@@ -1,6 +1,6 @@
 package com.threedotthree.application.response.dto;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Builder
@@ -11,13 +11,13 @@ import lombok.*;
 @ToString
 public class ScrapRestAPIInfoDTO {
 
-    @ApiParam(value = "통신 결과", required = true, example = "success")
+    @Schema(name = "status", description = "통신 결과", required = true, example = "success")
     private String status;
 
-    @ApiParam(value = "데이터", required = true)
+    @Schema(name = "data", description = "데이터", required = true)
     private ScrapRestAPIData data;
 
-    @ApiParam(value = "에러")
+    @Schema(name = "errors", description = "에러", example = "{}")
     private ScrapRestAPIError errors;
 
 }

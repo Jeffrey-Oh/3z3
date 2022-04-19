@@ -2,15 +2,21 @@ package com.threedotthree.presentation.szs;
 
 import com.threedotthree.application.response.dto.*;
 import com.threedotthree.application.user.UserApplication;
+import com.threedotthree.infrastructure.annotation.ApiErrorResponses;
+import com.threedotthree.infrastructure.exception.message.ResponseMessage;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
 import com.threedotthree.presentation.szs.response.LoginResponse;
 import com.threedotthree.presentation.szs.response.ScrapResponse;
 import com.threedotthree.presentation.szs.response.SignUpResponse;
 import com.threedotthree.presentation.szs.response.UserViewResponse;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +27,14 @@ import javax.validation.Valid;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/szs")
+@RequestMapping(value = "/szs", produces = MediaType.APPLICATION_JSON_VALUE)
 public class SzsController {
 
     private final UserApplication userApplication;
 
-    @ApiOperation(value = "회원가입")
+    @Operation(summary = "회원가입")
+    @ApiResponse(responseCode = "200", description = ResponseMessage.SUCCESS_MSG, content = @Content(schema = @Schema(implementation = SignUpResponse.class)))
+    @ApiErrorResponses
     @PostMapping(value = "/signup")
     public SignUpResponse signup(@Valid @RequestBody SignUpRequest request) throws Exception {
         log.info("Request : {}", request);
@@ -35,7 +43,9 @@ public class SzsController {
         return new SignUpResponse(signUpResultDTO);
     }
 
-    @ApiOperation(value = "로그인")
+    @Operation(summary = "로그인")
+    @ApiResponse(responseCode = "200", description = ResponseMessage.SUCCESS_MSG, content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+    @ApiErrorResponses
     @PostMapping(value = "/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         log.info("Request : {}", request);
@@ -44,7 +54,9 @@ public class SzsController {
         return new LoginResponse(loginResultDTO);
     }
 
-    @ApiOperation(value = "회원정보 조회")
+    @Operation(summary = "회원정보 조회")
+    @ApiResponse(responseCode = "200", description = ResponseMessage.SUCCESS_MSG, content = @Content(schema = @Schema(implementation = UserViewResponse.class)))
+    @ApiErrorResponses
     @GetMapping(value = "/me")
     public UserViewResponse me(HttpServletRequest request) throws Exception {
         log.info("Request : {}", request);
@@ -53,7 +65,9 @@ public class SzsController {
         return new UserViewResponse(userViewDTO);
     }
 
-    @ApiOperation(value = "유저 스크랩")
+    @Operation(summary = "유저 스크랩")
+    @ApiResponse(responseCode = "200", description = ResponseMessage.SUCCESS_MSG, content = @Content(schema = @Schema(implementation = ScrapResponse.class)))
+    @ApiErrorResponses
     @PostMapping(value = "/scrap")
     public ScrapResponse scrap(HttpServletRequest request) throws Exception {
         log.info("Request : {}", request);
@@ -62,11 +76,12 @@ public class SzsController {
         return new ScrapResponse(scrapRestAPIInfoDTO);
     }
 
-    @ApiOperation(value = "환급액")
+    @Operation(summary = "환급액")
+    @ApiResponse(responseCode = "200", description = ResponseMessage.SUCCESS_MSG, content = @Content(schema = @Schema(implementation = RefundDTO.class)))
+    @ApiErrorResponses
     @GetMapping(value = "/refund")
     public RefundDTO refund(HttpServletRequest request) {
         log.info("Request : {}", request);
-
         return userApplication.refund(request);
     }
 
