@@ -232,3 +232,68 @@
                 }
             }
            ```
+
+### 유저 스크랩
+- 구현완료
+- 구현방법
+    - `JWT Token` 으로 유저 스크랩
+        - `Authorization: Bearer 토큰`
+    - `Bearer ` Prefix 없는 경우 Exception 발생
+    - 토큰이 유효하지 않거나 `ROLE` 값이 다른 경우 Exception 발생
+    - RestTemplate Server To Server 통신
+    - `총급여액` 및 `산출세액` 항목 DB 저장
+- 검증결과
+    - [유저 스크랩](http://localhost:8080/swagger-ui/index.html#/szs-controller/scrapUsingPOST)
+        1. `200` <br />
+           ### Request
+           ```shell
+           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           ```
+
+           ### Response
+           ```json
+           {
+               "rt": 200,
+               "rtMsg": "API Call successful",
+               "userViewDTO": {
+                   "seqId": 1,
+                   "userId": "test",
+                   "name": "홍길동",
+                   "regNo": "860824-1655068"
+               }
+           }
+           ```
+        2. `403` - 토큰이 유효하지 않는 경우 Exception 발생
+           ### Request
+           ```shell
+           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 403,
+                "errors": {
+                    "field": "password",
+                    "message": "Permission error"
+                }
+            }
+           ```
+
+        3. `422` - 회원가입된 정보가 없는 경우 Exception 발생 <br />
+           (토큰 생성 직후 회원정보를 삭제한 경우)
+           ### Request
+           ```shell
+           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 422,
+                "errors": {
+                    "field": "User",
+                    "message": "조회된 유저정보가 없습니다."
+                }
+            }
+           ```

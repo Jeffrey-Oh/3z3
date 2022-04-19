@@ -2,13 +2,18 @@ package com.threedotthree.domain.model.user;
 
 
 import com.threedotthree.infrastructure.exception.NotFoundDataException;
+import com.threedotthree.infrastructure.exception.TokenExpiredException;
+import com.threedotthree.infrastructure.jwt.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Component
 @RequiredArgsConstructor
 public class UserFindSpecification {
 
+    private final JwtTokenUtil jwtTokenUtil;
     private final UserJpaRepository userJpaRepository;
 
     /**
@@ -22,11 +27,18 @@ public class UserFindSpecification {
 
     /**
      * 유저 정보 검증
-     * @param userSeqId : 고유번호
+     * @param request : HttpServletRequest
      * @return User
      */
-    public User findByUserSeqId(int userSeqId) {
-        return userJpaRepository.findByUserSeqId(userSeqId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
-    }
+    public User findByToken(HttpServletRequest request) {
+        // 액세스 토큰
+        String token = jwtTokenUtil.getAccessToken(request);
 
+        // 토큰 없을 시 인증 실패
+        if (token == null || token.isEmpty()) throw new TokenExpiredException();
+
+        int seqId = jwtTokenUtil.getUserSeqId(token);
+
+        return userJpaRepository.findByUserSeqId(seqId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
+    }
 }
