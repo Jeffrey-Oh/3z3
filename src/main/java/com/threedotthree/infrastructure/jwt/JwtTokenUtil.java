@@ -105,8 +105,9 @@ public class JwtTokenUtil {
     }
 
     // 토큰에서 회원정보 추출
-    public String getUserId(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+    public int getUserSeqId(String token) {
+        String result = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        return Integer.parseInt(result);
     }
 
 }
