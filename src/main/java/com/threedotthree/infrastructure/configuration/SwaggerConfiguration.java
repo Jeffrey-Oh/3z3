@@ -26,7 +26,10 @@ public class SwaggerConfiguration {
         responseMessages.add(new ResponseBuilder().code("400").description(ResponseMessage.BAD_REQUEST_MSG).build());
         responseMessages.add(new ResponseBuilder().code("401").description(ResponseMessage.UNAUTHORIZED_MSG).build());
         responseMessages.add(new ResponseBuilder().code("403").description(ResponseMessage.FORBIDDEN_MSG).build());
+        responseMessages.add(new ResponseBuilder().code("405").description(ResponseMessage.METHOD_NOT_ALLOWED_MSG).build());
         responseMessages.add(new ResponseBuilder().code("409").description(ResponseMessage.ALREADY_DATA_MSG).build());
+        responseMessages.add(new ResponseBuilder().code("417").description(ResponseMessage.EXPECTATION_FAILED_MSG).build());
+        responseMessages.add(new ResponseBuilder().code("422").description(ResponseMessage.NOT_FOUND_DATA_MSG).build());
         responseMessages.add(new ResponseBuilder().code("500").description(ResponseMessage.INTERNAL_SERVER_ERROR_MSG).build());
 
         return new Docket(DocumentationType.OAS_30)

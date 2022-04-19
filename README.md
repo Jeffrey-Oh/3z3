@@ -96,3 +96,77 @@
                }
            }
            ```
+
+### 로그인
+- 구현완료
+- 구현방법
+    - 회원가입 완료된 정보를 가지고 로그인 시도
+    - `아이디`로 먼저 조회
+        - 조회된 정보가 없으면 Exception 발생
+    - `비밀번호 + salt` 조합으로 비밀번호 확인
+        - 일치하지 않으면 Exception 발생
+    - 로그인 처리 시 `JWT Token` 발급
+- 검증결과
+    - [로그인](http://localhost:8080/swagger-ui/index.html#/szs-controller/loginUsingPOST)
+        1. `200` <br />
+           ### Request
+           ```json
+           {
+               "userId": "test",
+               "password": "qlqjs123"
+           }
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 200,
+                "rtMsg": "API Call successful",
+                "loginResult": {
+                    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAwOTQxNDEsImV4cCI6MTY1MDEwMTM0MX0.PSlkwyjS8CqT539J_PwCrvsU2Md1GbF26QDhx9S-EN4",
+                    "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAwOTQxNDEsImV4cCI6MTY1MTMwMzc0MX0._GqGoJZcQD72fARjyEpMh7tOxwrnsIyKR-hVIzdIdBY",
+                    "seqId": 1,
+                    "userId": "test",
+                    "name": "홍길동"
+                }
+            }
+           ```
+        2. `400` - 비밀번호가 일치하지 않는 경우 Exception 발생
+           ### Request
+           ```json
+           {
+               "userId": "test",
+               "password": "qlqjs1234"
+           }
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 400,
+                "errors": {
+                    "field": "password",
+                    "message": "비밀번호가 일치하지 않습니다."
+                }
+            }
+           ```
+
+        3. `422` - 회원가입된 정보가 없는 경우 Exception 발생
+           ### Request
+           ```json
+           {
+               "userId": "삼쩜삼",
+               "password": "qlqjs123"
+           }
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 422,
+                "errors": {
+                    "field": "User",
+                    "message": "조회된 유저정보가 없습니다."
+                }
+            }
+           ```
