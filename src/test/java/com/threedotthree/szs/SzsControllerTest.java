@@ -119,7 +119,7 @@ public class SzsControllerTest {
     }
 
     @Test
-    public void 회원가입_409() throws Exception {
+    public void 회원가입_422() throws Exception {
 
         // given
         doThrow(new AlreadyDataException()).when(userApplication).signUp(any(SignUpRequest.class));
@@ -142,8 +142,8 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
-            .andExpect(jsonPath("rt").value(409))
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(jsonPath("rt").value(422))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThat(acceptUser).isTrue();
