@@ -23,6 +23,8 @@ public class JwtTokenUtil {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
+    private final String TOKEN_PREFIX = "Bearer ";
+
     // access 토큰 유효시간 2시간
     private long accessTokenValidTime = 2 * 60 * 60 * 1000L;
 
@@ -62,10 +64,6 @@ public class JwtTokenUtil {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
-    public String getRoles(String token) {
-        return String.valueOf(Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().get("roles"));
-    }
-
     // JWT 토큰 인증정보 조회
     public Authentication getAuthentication(String token) {
         Claims claims = getClaims(token);
@@ -79,26 +77,15 @@ public class JwtTokenUtil {
         return new UsernamePasswordAuthenticationToken(claims, "", getAuthorities);
     }
 
-    // Request의 Header에서 access token 값을 가져옵니다. "Authorization" : "access TOKEN값"
-    public String resolveToken(HttpServletRequest request) {
-        return request.getHeader(HttpHeaders.AUTHORIZATION);
-    }
-
     public String getAccessToken(HttpServletRequest request) {
         return request.getHeader(HttpHeaders.AUTHORIZATION);
-    }
-
-    // Request의 Header에서 refresh token 값을 가져옵니다. "refreshToken" : "refresh TOKEN값"
-    public String resolveRefreshToken(HttpServletRequest request) {
-        return request.getHeader("RefreshToken");
     }
 
     // 토큰 유효성 + 만료일자 확인
     public boolean validateToken(String jwtToken) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken);
-            Boolean valid = !claims.getBody().getExpiration().before(new Date());
-            return valid;
+            return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
         }
@@ -106,6 +93,7 @@ public class JwtTokenUtil {
 
     // 토큰에서 회원정보 추출
     public int getUserSeqId(String token) {
+        token = token.replace(TOKEN_PREFIX, "").trim();
         String result = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
         return Integer.parseInt(result);
     }

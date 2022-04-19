@@ -2,20 +2,20 @@ package com.threedotthree.presentation.szs;
 
 import com.threedotthree.application.response.dto.LoginResultDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
+import com.threedotthree.application.response.dto.UserViewDTO;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
 import com.threedotthree.presentation.szs.response.LoginResponse;
 import com.threedotthree.presentation.szs.response.SignUpResponse;
+import com.threedotthree.presentation.szs.response.UserViewResponse;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @Slf4j
@@ -43,6 +43,15 @@ public class SzsController {
 
         LoginResultDTO loginResultDTO = userApplication.login(request);
         return new LoginResponse(loginResultDTO);
+    }
+
+    @ApiOperation(value = "회원정보 조회")
+    @GetMapping(value = "/me")
+    public UserViewResponse me(HttpServletRequest request) throws Exception {
+        log.info("Request : {}", request);
+
+        UserViewDTO userViewDTO = userApplication.me(request);
+        return new UserViewResponse(userViewDTO);
     }
 
 }

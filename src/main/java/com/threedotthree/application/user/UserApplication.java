@@ -3,20 +3,25 @@ package com.threedotthree.application.user;
 
 import com.threedotthree.application.response.dto.LoginResultDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
+import com.threedotthree.application.response.dto.UserViewDTO;
 import com.threedotthree.domain.model.user.User;
 import com.threedotthree.domain.model.user.UserFindSpecification;
 import com.threedotthree.domain.model.user.UserJpaRepository;
 import com.threedotthree.infrastructure.exception.AlreadyDataException;
 import com.threedotthree.infrastructure.exception.BadRequestApiException;
+import com.threedotthree.infrastructure.exception.TokenExpiredException;
 import com.threedotthree.infrastructure.exception.UnauthorizedException;
 import com.threedotthree.infrastructure.jwt.JwtTokenUtil;
 import com.threedotthree.infrastructure.utils.SecurityUtil;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,10 +29,27 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserApplication {
 
+    private final ModelMapper modelMapper;
     private final JwtTokenUtil jwtTokenUtil;
 
     private final UserJpaRepository userJpaRepository;
     private final UserFindSpecification userFindSpecification;
+
+    /**
+     * UserRole 확인
+     */
+    public Boolean userRolesCheck(String token) {
+        int seqId = jwtTokenUtil.getUserSeqId(token);
+        Claims claims = jwtTokenUtil.getClaims(token);
+        String roles = String.valueOf(claims.get("roles"));
+
+        if ("ROLE_USER".equals(roles)) {
+            User user = userJpaRepository.findByUserSeqId(seqId).orElse(null);
+            return user != null;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * 회원가입
@@ -104,6 +126,30 @@ public class UserApplication {
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .build();
+    }
+
+    /**
+     * 회원정보 조회
+     * @param request : HttpServletRequest
+     * @return UserViewDTO
+     */
+    public UserViewDTO me(HttpServletRequest request) throws Exception {
+
+        // 액세스 토큰
+        String token = jwtTokenUtil.getAccessToken(request);
+
+        // 토큰 없을 시 인증 실패
+        if (token == null || token.isEmpty()) throw new TokenExpiredException();
+
+        int userSeqId = jwtTokenUtil.getUserSeqId(token);
+
+        User user = userFindSpecification.findByUserSeqId(userSeqId);
+
+        UserViewDTO userViewDTO = modelMapper.map(user, UserViewDTO.class);
+        userViewDTO.setRegNo(SecurityUtil.strToDecrypt(user.getRegNo()));
+
+        return userViewDTO;
+
     }
 
 }
