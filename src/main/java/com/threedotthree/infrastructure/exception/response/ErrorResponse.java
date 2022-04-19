@@ -1,10 +1,7 @@
 package com.threedotthree.infrastructure.exception.response;
 
-import com.three.three.infrastructure.exception.response.dto.ErrorDTO;
-import com.three.three.infrastructure.util.JsonUtils;
 import com.threedotthree.infrastructure.exception.response.dto.ErrorDTO;
 import com.threedotthree.infrastructure.utils.JsonUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -72,6 +72,9 @@ dependencies {
     // swagger
     implementation 'io.springfox:springfox-boot-starter:3.0.0'
 
+    // assert
+    testCompileOnly "org.assertj:assertj-core:3.22.0"
+
 }
 
 tasks.named('test') {
