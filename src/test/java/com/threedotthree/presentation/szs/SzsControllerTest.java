@@ -1,23 +1,33 @@
-package com.threedotthree.szs;
+package com.threedotthree.presentation.szs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.threedotthree.application.response.dto.*;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.infrastructure.exception.*;
+import com.threedotthree.infrastructure.exception.message.ResponseMessage;
+import com.threedotthree.infrastructure.exception.response.ErrorResponse;
 import com.threedotthree.infrastructure.jwt.JwtTokenUtil;
-import com.threedotthree.presentation.szs.SzsController;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
+import com.threedotthree.presentation.szs.response.LoginResponse;
+import com.threedotthree.presentation.szs.response.ScrapResponse;
+import com.threedotthree.presentation.szs.response.SignUpResponse;
+import com.threedotthree.presentation.szs.response.UserViewResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -29,10 +39,14 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SzsController.class)
 public class SzsControllerTest {
+
+    @Value("${jwt.secretKey}")
+    private String secretKey;
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,6 +59,8 @@ public class SzsControllerTest {
 
     @MockBean
     private UserApplication userApplication;
+
+    String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODk5ODEsImV4cCI6MTY1Mjg4MTk4MX0.b638yftGGj3Z8kL4URZenVOgJpjI4wZbGumuu-MLdJk";
 
     @Test
     public void 회원가입_200() throws Exception {
@@ -76,11 +92,21 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isOk())
-            .andExpect(jsonPath("rt").value(200))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(HttpStatus.OK.value()))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
+
+        SignUpResponse responseDTO = objectMapper.readValue(response, SignUpResponse.class);
 
         assertThat(acceptUser).isTrue();
+        assertThat(responseDTO.rt).isEqualTo(HttpStatus.OK.value());
+        assertThat(responseDTO.getSignUpResultDTO().getUserId()).isEqualTo(request.getUserId());
+        assertThat(responseDTO.getSignUpResultDTO().getName()).isEqualTo(request.getName());
+
         verify(userApplication).signUp(any(SignUpRequest.class));
 
     }
@@ -109,20 +135,28 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isUnauthorized())
+        String response = result.andExpect(status().isUnauthorized())
             .andExpect(jsonPath("rt").value(401))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
+
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
 
         assertThat(acceptUser).isFalse();
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.UNAUTHORIZED_MSG);
         verify(userApplication).signUp(any(SignUpRequest.class));
 
     }
 
     @Test
-    public void 회원가입_409() throws Exception {
+    public void 회원가입409() throws Exception {
 
         // given
-        doThrow(new AlreadyDataException()).when(userApplication).signUp(any(SignUpRequest.class));
+        doThrow(new AlreadyDataException(ResponseMessage.ALREADY_DATA_MSG)).when(userApplication).signUp(any(SignUpRequest.class));
 
         // when
         SignUpRequest request = SignUpRequest.builder()
@@ -142,11 +176,19 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        String response = result.andExpect(status().isConflict())
             .andExpect(jsonPath("rt").value(409))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
+
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
 
         assertThat(acceptUser).isTrue();
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.CONFLICT.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.ALREADY_DATA_MSG);
         verify(userApplication).signUp(any(SignUpRequest.class));
 
     }
@@ -179,10 +221,17 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isOk())
-            .andExpect(jsonPath("rt").value(200))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(HttpStatus.OK.value()))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        LoginResponse responseDTO = objectMapper.readValue(response, LoginResponse.class);
+
+        assertThat(responseDTO.getLoginResult().getUserId()).isEqualTo(request.getUserId());
         verify(userApplication).login(any(LoginRequest.class));
 
     }
@@ -191,7 +240,7 @@ public class SzsControllerTest {
     public void 로그인_400() throws Exception {
 
         // given
-        doThrow(new BadRequestApiException("")).when(userApplication).login(any(LoginRequest.class));
+        doThrow(new BadRequestApiException(ResponseMessage.BAD_REQUEST_MSG)).when(userApplication).login(any(LoginRequest.class));
 
         // when
         LoginRequest request = LoginRequest.builder()
@@ -207,10 +256,18 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isBadRequest())
+        String response = result.andExpect(status().isBadRequest())
             .andExpect(jsonPath("rt").value(400))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.BAD_REQUEST_MSG);
         verify(userApplication).login(any(LoginRequest.class));
 
     }
@@ -219,7 +276,7 @@ public class SzsControllerTest {
     public void 로그인_422() throws Exception {
 
         // given
-        doThrow(new NotFoundDataException("")).when(userApplication).login(any(LoginRequest.class));
+        doThrow(new NotFoundDataException(ResponseMessage.NOT_FOUND_DATA_MSG)).when(userApplication).login(any(LoginRequest.class));
 
         // when
         LoginRequest request = LoginRequest.builder()
@@ -235,16 +292,27 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isUnprocessableEntity())
+        String response = result.andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("rt").value(422))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.NOT_FOUND_DATA_MSG);
         verify(userApplication).login(any(LoginRequest.class));
 
     }
 
     @Test
     public void 회원정보_조회_200() throws Exception {
+
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
 
         UserViewDTO userViewDTO = UserViewDTO.builder()
             .userSeqId(1)
@@ -259,16 +327,27 @@ public class SzsControllerTest {
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isOk())
-            .andExpect(jsonPath("rt").value(200))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(HttpStatus.OK.value()))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        UserViewResponse responseDTO = objectMapper.readValue(response, UserViewResponse.class);
+
+        // 회원 고유번호 추출
+        int userSeqId = jwtTokenUtil.getUserSeqId(this.token);
+
+        assertThat(jwtTokenUtil.validateToken(this.token)).isTrue();
+        assertThat(responseDTO.getUserViewDTO().getUserSeqId()).isEqualTo(userSeqId);
         verify(userApplication).me(any(HttpServletRequest.class));
 
     }
@@ -276,22 +355,36 @@ public class SzsControllerTest {
     @Test
     public void 회원정보_조회_403() throws Exception {
 
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
+
+        String invalidToken = "tokenInValid";
+
         // given
         doThrow(new TokenExpiredException()).when(userApplication).me(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/me")
-                .header(HttpHeaders.AUTHORIZATION, "token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isForbidden())
+        String response = result.andExpect(status().isForbidden())
             .andExpect(jsonPath("rt").value(403))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.FORBIDDEN_MSG);
+        assertThat(jwtTokenUtil.validateToken(invalidToken)).isFalse();
         verify(userApplication).me(any(HttpServletRequest.class));
 
     }
@@ -300,27 +393,41 @@ public class SzsControllerTest {
     public void 회원정보_조회_422() throws Exception {
 
         // given
-        doThrow(new NotFoundDataException("")).when(userApplication).me(any(HttpServletRequest.class));
+        doThrow(new NotFoundDataException(ResponseMessage.NOT_FOUND_DATA_MSG)).when(userApplication).me(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isUnprocessableEntity())
+        String response = result.andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("rt").value(422))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.NOT_FOUND_DATA_MSG);
         verify(userApplication).me(any(HttpServletRequest.class));
 
     }
 
     @Test
     public void 유저_스크랩_200() throws Exception {
+
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
+
+        // 회원 고유번호
+        int userSeqId = 1;
 
         List<Scrap001> scrap001List = List.of(
             Scrap001.builder()
@@ -396,16 +503,25 @@ public class SzsControllerTest {
         // when
         ResultActions result = mockMvc.perform(
             post("/szs/scrap")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isOk())
-            .andExpect(jsonPath("rt").value(200))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(HttpStatus.OK.value()))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ScrapResponse responseDTO = objectMapper.readValue(response, ScrapResponse.class);
+
+        assertThat(jwtTokenUtil.validateToken(this.token)).isTrue();
+        assertThat(jwtTokenUtil.getUserSeqId(this.token)).isEqualTo(userSeqId);
+        assertThat(responseDTO.getScrapRestAPIInfo().getData().getJsonList().getScrap001().get(0).get이름()).isEqualTo(scrap001List.get(0).get이름());
         verify(userApplication).scrap(any(HttpServletRequest.class));
 
     }
@@ -413,22 +529,36 @@ public class SzsControllerTest {
     @Test
     public void 유저_스크랩_403() throws Exception {
 
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
+
+        String invalidToken = "tokenInValid";
+
         // given
         doThrow(new TokenExpiredException()).when(userApplication).scrap(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             post("/szs/scrap")
-                .header(HttpHeaders.AUTHORIZATION, "token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isForbidden())
+        String response = result.andExpect(status().isForbidden())
             .andExpect(jsonPath("rt").value(403))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.FORBIDDEN_MSG);
+        assertThat(jwtTokenUtil.validateToken(invalidToken)).isFalse();
         verify(userApplication).scrap(any(HttpServletRequest.class));
 
     }
@@ -437,27 +567,38 @@ public class SzsControllerTest {
     public void 유저_스크랩_422() throws Exception {
 
         // given
-        doThrow(new NotFoundDataException("")).when(userApplication).scrap(any(HttpServletRequest.class));
+        doThrow(new NotFoundDataException(ResponseMessage.NOT_FOUND_DATA_MSG)).when(userApplication).scrap(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             post("/szs/scrap")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isUnprocessableEntity())
+        String response = result.andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("rt").value(422))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.NOT_FOUND_DATA_MSG);
         verify(userApplication).scrap(any(HttpServletRequest.class));
 
     }
 
     @Test
     public void 환급액_200() throws Exception {
+
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
 
         RefundDTO refundDTO = RefundDTO.builder()
             .이름("홍길동")
@@ -472,15 +613,26 @@ public class SzsControllerTest {
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/refund")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        RefundDTO responseDTO = objectMapper.readValue(response, RefundDTO.class);
+
+        assertThat(jwtTokenUtil.validateToken(this.token)).isTrue();
+        assertThat(responseDTO.get이름()).isEqualTo(refundDTO.get이름());
+        assertThat(responseDTO.get한도()).isEqualTo(refundDTO.get한도());
+        assertThat(responseDTO.get공제액()).isEqualTo(refundDTO.get공제액());
+        assertThat(responseDTO.get환급액()).isEqualTo(refundDTO.get환급액());
         verify(userApplication).refund(any(HttpServletRequest.class));
 
     }
@@ -489,21 +641,29 @@ public class SzsControllerTest {
     public void 환급액_400() throws Exception {
 
         // given
-        doThrow(new BadRequestApiException("")).when(userApplication).refund(any(HttpServletRequest.class));
+        doThrow(new BadRequestApiException(ResponseMessage.BAD_REQUEST_MSG)).when(userApplication).refund(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/refund")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isBadRequest())
+        String response = result.andExpect(status().isBadRequest())
             .andExpect(jsonPath("rt").value(400))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.BAD_REQUEST_MSG);
         verify(userApplication).refund(any(HttpServletRequest.class));
 
     }
@@ -511,22 +671,36 @@ public class SzsControllerTest {
     @Test
     public void 환급액_403() throws Exception {
 
+        jwtTokenUtil = new JwtTokenUtil();
+        ReflectionTestUtils.setField(jwtTokenUtil, "secretKey", Base64.getEncoder().encodeToString(secretKey.getBytes()));
+
+        String invalidToken = "tokenInValid";
+
         // given
         doThrow(new TokenExpiredException()).when(userApplication).refund(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/refund")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + invalidToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isForbidden())
+        String response = result.andExpect(status().isForbidden())
             .andExpect(jsonPath("rt").value(403))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.FORBIDDEN_MSG);
+        assertThat(jwtTokenUtil.validateToken(invalidToken)).isFalse();
         verify(userApplication).refund(any(HttpServletRequest.class));
 
     }
@@ -535,20 +709,29 @@ public class SzsControllerTest {
     public void 환급액_409() throws Exception {
 
         // given
-        doThrow(new AlreadyDataException()).when(userApplication).refund(any(HttpServletRequest.class));
+        doThrow(new AlreadyDataException(ResponseMessage.ALREADY_DATA_MSG)).when(userApplication).refund(any(HttpServletRequest.class));
 
         // when
         ResultActions result = mockMvc.perform(
             get("/szs/refund")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
         );
 
         // then
-        result.andExpect(status().isConflict())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String response = result.andExpect(status().isConflict())
+            .andExpect(jsonPath("rt").value(409))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andDo(print())
+            .andReturn()
+            .getResponse()
+            .getContentAsString(StandardCharsets.UTF_8);
 
+        ErrorResponse responseDTO = objectMapper.readValue(response, ErrorResponse.class);
+
+        assertThat(responseDTO.getRt()).isEqualTo(HttpStatus.CONFLICT.value());
+        assertThat(responseDTO.getErrors().getMessage()).isEqualTo(ResponseMessage.ALREADY_DATA_MSG);
         verify(userApplication).refund(any(HttpServletRequest.class));
 
     }
