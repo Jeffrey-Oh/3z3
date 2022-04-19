@@ -69,6 +69,9 @@ dependencies {
     // Apache Commons Lang (StringUtils)
     implementation 'org.apache.commons:commons-lang3'
 
+    // swagger
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+
 }
 
 tasks.named('test') {
