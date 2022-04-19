@@ -1,12 +1,14 @@
 package com.threedotthree.presentation.szs;
 
 import com.threedotthree.application.response.dto.LoginResultDTO;
+import com.threedotthree.application.response.dto.ScrapRestAPIInfoDTO;
 import com.threedotthree.application.response.dto.SignUpResultDTO;
 import com.threedotthree.application.response.dto.UserViewDTO;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
 import com.threedotthree.presentation.szs.response.LoginResponse;
+import com.threedotthree.presentation.szs.response.ScrapResponse;
 import com.threedotthree.presentation.szs.response.SignUpResponse;
 import com.threedotthree.presentation.szs.response.UserViewResponse;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +54,15 @@ public class SzsController {
 
         UserViewDTO userViewDTO = userApplication.me(request);
         return new UserViewResponse(userViewDTO);
+    }
+
+    @ApiOperation(value = "유저 스크랩")
+    @PostMapping(value = "/scrap")
+    public ScrapResponse scrap(HttpServletRequest request) throws Exception {
+        log.info("Request : {}", request);
+
+        ScrapRestAPIInfoDTO scrapRestAPIInfoDTO = userApplication.scrap(request);
+        return new ScrapResponse(scrapRestAPIInfoDTO);
     }
 
 }

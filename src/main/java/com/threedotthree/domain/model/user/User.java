@@ -1,5 +1,6 @@
 package com.threedotthree.domain.model.user;
 
+import com.threedotthree.domain.model.scrapCalc.ScrapCalc;
 import com.threedotthree.domain.model.shared.UserCommonColumns;
 import com.threedotthree.infrastructure.utils.SecurityUtil;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -33,6 +35,9 @@ public class User extends UserCommonColumns {
 
     @Column(name = "regNo", nullable = false)
     private String regNo;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.PERSIST)
+    private List<ScrapCalc> scrapCalc;
 
     /**
      * RefreshToken 업데이트

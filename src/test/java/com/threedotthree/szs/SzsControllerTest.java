@@ -1,9 +1,7 @@
 package com.threedotthree.szs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.threedotthree.application.response.dto.LoginResultDTO;
-import com.threedotthree.application.response.dto.SignUpResultDTO;
-import com.threedotthree.application.response.dto.UserViewDTO;
+import com.threedotthree.application.response.dto.*;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.infrastructure.exception.*;
 import com.threedotthree.infrastructure.jwt.JwtTokenUtil;
@@ -20,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.List;
 
 import static com.threedotthree.infrastructure.inMemory.signup.SignUpDTOFactory.mockSignUpAcceptUser;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -119,7 +119,7 @@ public class SzsControllerTest {
     }
 
     @Test
-    public void 회원가입_422() throws Exception {
+    public void 회원가입_409() throws Exception {
 
         // given
         doThrow(new AlreadyDataException()).when(userApplication).signUp(any(SignUpRequest.class));
@@ -142,8 +142,8 @@ public class SzsControllerTest {
         );
 
         // then
-        result.andExpect(status().isUnprocessableEntity())
-            .andExpect(jsonPath("rt").value(422))
+        result.andExpect(status().isConflict())
+            .andExpect(jsonPath("rt").value(409))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThat(acceptUser).isTrue();
@@ -316,6 +316,143 @@ public class SzsControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         verify(userApplication).me(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 유저_스크랩_200() throws Exception {
+
+        List<Scrap001> scrap001List = List.of(
+            Scrap001.builder()
+                .소득내역("급여")
+                .총지급액("41,333.333")
+                .업무시작일(new Date().toString())
+                .기업명("(주)프리저")
+                .이름("베지터")
+                .지급일(new Date().toString())
+                .업무종료일(new Date().toString())
+                .주민등록번호("910411-1656116")
+                .소득구분("근로소득(연간)")
+                .사업자등록번호("012-44-45749")
+                .build()
+        );
+
+        List<Scrap002> scrap002List = List.of(
+            Scrap002.builder()
+                .총사용금액("2,000,000")
+                .소득구분("산출세액")
+                .build()
+        );
+
+        List<Scrap003> scrap003List = List.of(
+            Scrap003.builder()
+                .주택소지여부(false)
+                .주택청약가입여부(true)
+                .주택청약납입금("240,000")
+                .build()
+        );
+
+        List<Scrap004> scrap004List = List.of(
+            Scrap004.builder()
+                .수임된세무사("")
+                .수임동의여부(false)
+                .수임된세무사연락처("")
+                .build()
+        );
+
+        ScrapRestAPIDetail jsonList = ScrapRestAPIDetail.builder()
+            .scrap001(scrap001List)
+            .scrap002(scrap002List)
+            .scrap003(scrap003List)
+            .scrap004(scrap004List)
+            .errMsg("")
+            .company("szs")
+            .svcCd("test01")
+            .userId("1")
+            .build();
+
+        ScrapRestAPIData data = ScrapRestAPIData.builder()
+            .jsonList(jsonList)
+            .appVer("2021112501")
+            .hostNm("jobis-codetest")
+            .workerResDt(new Date().toString())
+            .workerReqDt(new Date().toString())
+            .build();
+
+        ScrapRestAPIError errors = ScrapRestAPIError.builder()
+            .code(null)
+            .message(null)
+            .build();
+
+        ScrapRestAPIInfoDTO scrapRestAPIInfoDTO = ScrapRestAPIInfoDTO.builder()
+            .status("success")
+            .data(data)
+            .errors(errors)
+            .build();
+
+        // given
+        given(userApplication.scrap(any(HttpServletRequest.class))).willReturn(scrapRestAPIInfoDTO);
+
+        // when
+        ResultActions result = mockMvc.perform(
+            post("/szs/scrap")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isOk())
+            .andExpect(jsonPath("rt").value(200))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).scrap(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 유저_스크랩_403() throws Exception {
+
+        // given
+        doThrow(new TokenExpiredException()).when(userApplication).scrap(any(HttpServletRequest.class));
+
+        // when
+        ResultActions result = mockMvc.perform(
+            post("/szs/scrap")
+                .header(HttpHeaders.AUTHORIZATION, "token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isForbidden())
+            .andExpect(jsonPath("rt").value(403))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).scrap(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 유저_스크랩_422() throws Exception {
+
+        // given
+        doThrow(new NotFoundDataException("")).when(userApplication).scrap(any(HttpServletRequest.class));
+
+        // when
+        ResultActions result = mockMvc.perform(
+            post("/szs/scrap")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(jsonPath("rt").value(422))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).scrap(any(HttpServletRequest.class));
 
     }
 
