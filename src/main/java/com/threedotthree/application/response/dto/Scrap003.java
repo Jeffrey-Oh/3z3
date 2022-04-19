@@ -1,6 +1,6 @@
 package com.threedotthree.application.response.dto;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Builder
@@ -11,13 +11,13 @@ import lombok.*;
 @ToString
 public class Scrap003 {
 
-    @ApiParam(value = "주택소지여부")
+    @Schema(name = "주택소지여부", description = "주택소지여부", example = "false")
     private Boolean 주택소지여부;
 
-    @ApiParam(value = "주택청약가입여부")
+    @Schema(name = "주택청약가입여부", description = "주택청약가입여부", example = "true")
     private Boolean 주택청약가입여부;
 
-    @ApiParam(value = "주택청약납입금")
+    @Schema(name = "주택청약납입금", description = "주택청약납입금", example = "240,000")
     private String 주택청약납입금;
 
 }

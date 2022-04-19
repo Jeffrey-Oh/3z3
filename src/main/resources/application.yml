@@ -24,6 +24,17 @@ spring:
 jwt:
   secretKey: three-dot-three # jwt 시크릿키
 
+springdoc:
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+    display-query-params-without-oauth2: true
+    doc-expansion: none
+  paths-to-match:
+    - /szs/**
+
 logging: # 로깅
   level: # 로깅 레벨
     root: info # 로킹 레벨 설정

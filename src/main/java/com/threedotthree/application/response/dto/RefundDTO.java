@@ -1,6 +1,6 @@
 package com.threedotthree.application.response.dto;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Builder
@@ -10,16 +10,16 @@ import lombok.*;
 @NoArgsConstructor
 public class RefundDTO {
 
-    @ApiParam(value = "회원 이름", required = true, example = "홍길동")
+    @Schema(name = "이름", description = "회원 이름", required = true, example = "홍길동")
     private String 이름;
 
-    @ApiParam(value = "한도", example = "68만 4천원")
+    @Schema(name = "한도", description = "한도", required = true, example = "68만 4천원")
     private String 한도;
 
-    @ApiParam(value = "공제액", example = "92만 5천원")
+    @Schema(name = "공제액", description = "공제액", required = true, example = "92만 5천원")
     private String 공제액;
 
-    @ApiParam(value = "환급액", example = "68만 4천원")
+    @Schema(name = "환급액", description = "환급액", required = true, example = "68만 4천원")
     private String 환급액;
 
 }

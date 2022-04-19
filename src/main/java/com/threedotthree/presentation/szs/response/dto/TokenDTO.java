@@ -1,6 +1,6 @@
 package com.threedotthree.presentation.szs.response.dto;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,10 +14,10 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class TokenDTO {
 
-    @ApiParam(value = "JWT Access Token", required = true)
+    @Schema(name = "accessToken", description = "JWT Access Token", required = true, example = "accessToken")
     private String accessToken;
 
-    @ApiParam(value = "JWT Refresh Token", required = true)
+    @Schema(name = "refreshToken", description = "JWT Refresh Token", required = true, example = "refreshToken")
     private String refreshToken;
 
     @Override

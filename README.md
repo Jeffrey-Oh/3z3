@@ -5,6 +5,7 @@
 - Spring Boot 2.6.4
 - JPA
 - H2
+    - password : test
 - Gradle
 
 ---
@@ -65,7 +66,7 @@
                }
            }
            ```
-        3. `422` - 이미 가입한 데이터로 회원가입 시도 시 Exception 발생
+        3. `409` - 이미 가입한 데이터로 회원가입 시도 시 Exception 발생
            ### Request
            ```json
            {
@@ -79,7 +80,7 @@
            ### Response
            ```json
            {
-               "rt": 422,
+               "rt": 409,
                "errors": {
                    "field": "userId",
                    "message": "해당 아이디는 사용할 수 없습니다."
@@ -88,7 +89,7 @@
            ```
            ```json
            {
-               "rt": 422,
+               "rt": 409,
                "errors": {
                    "field": null,
                    "message": "이미 회원가입된 정보가 존재합니다."
