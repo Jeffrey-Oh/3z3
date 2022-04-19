@@ -183,7 +183,10 @@
         1. `200` <br />
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/me' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
@@ -202,7 +205,10 @@
         2. `403` - 토큰이 유효하지 않는 경우 Exception 발생
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/me' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
@@ -220,7 +226,10 @@
            (토큰 생성 직후 회원정보를 삭제한 경우)
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/me' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
@@ -248,7 +257,11 @@
         1. `200` <br />
            ### Request
            ```shell
-           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           curl -X 'POST' \
+             'http://localhost:8080/szs/scrap' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I' \
+             -d ''
            ```
 
            ### Response
@@ -267,7 +280,11 @@
         2. `403` - 토큰이 유효하지 않는 경우 Exception 발생
            ### Request
            ```shell
-           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           curl -X 'POST' \
+             'http://localhost:8080/szs/scrap' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I' \
+             -d ''
            ```
 
            ### Response
@@ -285,7 +302,11 @@
            (토큰 생성 직후 회원정보를 삭제한 경우)
            ### Request
            ```shell
-           curl -X POST "http://localhost:8080/szs/scrap" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDg4MzgsImV4cCI6MTY1MDExNjAzOH0.leUWs-CVrar0MvdEhMfnFY5GJNDM_MIZad3eVpnxaI8" -d ""
+           curl -X 'POST' \
+             'http://localhost:8080/szs/scrap' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I' \
+             -d ''
            ```
 
            ### Response
@@ -312,7 +333,10 @@
         1. `200` <br />
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/refund" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMjM2ODIsImV4cCI6MTY1MDEzMDg4Mn0.SmjEH_L_b5_4BwHO55zzEOivs4mL-nzVG0CnRm3LI_8"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/refund' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
@@ -327,7 +351,10 @@
         2. `403` - 토큰이 유효하지 않는 경우 Exception 발생
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/refund" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMjM2ODIsImV4cCI6MTY1MDEzMDg4Mn0.SmjEH_L_b5_4BwHO55zzEOivs4mL-nzVG0CnRm3LI_8"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/refund' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
@@ -345,7 +372,10 @@
            (토큰 생성 직후 회원정보를 삭제한 경우)
            ### Request
            ```shell
-           curl -X GET "http://localhost:8080/szs/refund" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMjM2ODIsImV4cCI6MTY1MDEzMDg4Mn0.SmjEH_L_b5_4BwHO55zzEOivs4mL-nzVG0CnRm3LI_8"
+           curl -X 'GET' \
+             'http://localhost:8080/szs/refund' \
+             -H 'accept: application/json' \
+             -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAyODg3MTQsImV4cCI6MTY1MDI5NTkxNH0.2wfQcG-BwqoNTCoZWLH9r1nPpe_cMGRCBYC203OgZ2I'
            ```
 
            ### Response
