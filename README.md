@@ -5,7 +5,6 @@
 - Spring Boot 2.6.4
 - JPA
 - H2
-    - password : test
 - Gradle
 
 ---
@@ -82,15 +81,6 @@
            {
                "rt": 409,
                "errors": {
-                   "field": "userId",
-                   "message": "해당 아이디는 사용할 수 없습니다."
-               }
-           }
-           ```
-           ```json
-           {
-               "rt": 409,
-               "errors": {
                    "field": null,
                    "message": "이미 회원가입된 정보가 존재합니다."
                }
@@ -158,6 +148,69 @@
                "userId": "삼쩜삼",
                "password": "qlqjs123"
            }
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 422,
+                "errors": {
+                    "field": "User",
+                    "message": "조회된 유저정보가 없습니다."
+                }
+            }
+           ```
+
+### 회원정보 조회
+- 구현완료
+- 구현방법
+    - `JWT Token` 으로 회원정보 조회
+        - `Authorization: Bearer 토큰`
+    - `Bearer ` Prefix 없는 경우 Exception 발생
+    - 토큰이 유효하지 않거나 `ROLE` 값이 다른 경우 Exception 발생
+- 검증결과
+    - [회원정보 조회](http://localhost:8080/swagger-ui/index.html#/szs-controller/meUsingGET)
+        1. `200` <br />
+           ### Request
+           ```shell
+           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
+           ```
+
+           ### Response
+           ```json
+           {
+               "rt": 200,
+               "rtMsg": "API Call successful",
+               "userViewDTO": {
+                   "seqId": 1,
+                   "userId": "test",
+                   "name": "홍길동",
+                   "regNo": "860824-1655068"
+               }
+           }
+           ```
+        2. `403` - 토큰이 유효하지 않는 경우 Exception 발생
+           ### Request
+           ```shell
+           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
+           ```
+
+           ### Response
+           ```json
+           {
+                "rt": 403,
+                "errors": {
+                    "field": "password",
+                    "message": "Permission error"
+                }
+            }
+           ```
+
+        3. `422` - 회원가입된 정보가 없는 경우 Exception 발생 <br />
+           (토큰 생성 직후 회원정보를 삭제한 경우)
+           ### Request
+           ```shell
+           curl -X GET "http://localhost:8080/szs/me" -H "accept: */*" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOiJST0xFX1VTRVIiLCJpYXQiOjE2NTAxMDA4ODcsImV4cCI6MTY1MDEwODA4N30.NLlD-OcE_rYeKVcwbkh7w9rsAYwSP8ui21ug3eFKEn4"
            ```
 
            ### Response

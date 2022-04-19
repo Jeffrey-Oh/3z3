@@ -20,4 +20,13 @@ public class UserFindSpecification {
         return userJpaRepository.findByUserId(userId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
     }
 
+    /**
+     * 유저 정보 검증
+     * @param userSeqId : 고유번호
+     * @return User
+     */
+    public User findByUserSeqId(int userSeqId) {
+        return userJpaRepository.findByUserSeqId(userSeqId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
+    }
+
 }
