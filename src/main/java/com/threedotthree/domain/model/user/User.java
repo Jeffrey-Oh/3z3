@@ -37,7 +37,7 @@ public class User extends UserCommonColumns {
     private String regNo;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.PERSIST)
-    private List<ScrapCalc> scrapCalc;
+    private List<ScrapCalc> scrapCalcList;
 
     /**
      * RefreshToken 업데이트

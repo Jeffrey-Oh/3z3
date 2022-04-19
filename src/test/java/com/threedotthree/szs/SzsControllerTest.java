@@ -456,4 +456,101 @@ public class SzsControllerTest {
 
     }
 
+    @Test
+    public void 환급액_200() throws Exception {
+
+        RefundDTO refundDTO = RefundDTO.builder()
+            .이름("홍길동")
+            .한도("68만 4천원")
+            .공제액("92만 5천원")
+            .환급액("68만 4천원")
+            .build();
+
+        // given
+        given(userApplication.refund(any(HttpServletRequest.class))).willReturn(refundDTO);
+
+        // when
+        ResultActions result = mockMvc.perform(
+            get("/szs/refund")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).refund(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 환급액_400() throws Exception {
+
+        // given
+        doThrow(new BadRequestApiException("")).when(userApplication).refund(any(HttpServletRequest.class));
+
+        // when
+        ResultActions result = mockMvc.perform(
+            get("/szs/refund")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isBadRequest())
+            .andExpect(jsonPath("rt").value(400))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).refund(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 환급액_403() throws Exception {
+
+        // given
+        doThrow(new TokenExpiredException()).when(userApplication).refund(any(HttpServletRequest.class));
+
+        // when
+        ResultActions result = mockMvc.perform(
+            get("/szs/refund")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isForbidden())
+            .andExpect(jsonPath("rt").value(403))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).refund(any(HttpServletRequest.class));
+
+    }
+
+    @Test
+    public void 환급액_409() throws Exception {
+
+        // given
+        doThrow(new AlreadyDataException()).when(userApplication).refund(any(HttpServletRequest.class));
+
+        // when
+        ResultActions result = mockMvc.perform(
+            get("/szs/refund")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        // then
+        result.andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(userApplication).refund(any(HttpServletRequest.class));
+
+    }
+
 }

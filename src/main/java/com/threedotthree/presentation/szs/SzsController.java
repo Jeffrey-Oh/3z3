@@ -1,9 +1,6 @@
 package com.threedotthree.presentation.szs;
 
-import com.threedotthree.application.response.dto.LoginResultDTO;
-import com.threedotthree.application.response.dto.ScrapRestAPIInfoDTO;
-import com.threedotthree.application.response.dto.SignUpResultDTO;
-import com.threedotthree.application.response.dto.UserViewDTO;
+import com.threedotthree.application.response.dto.*;
 import com.threedotthree.application.user.UserApplication;
 import com.threedotthree.presentation.szs.request.LoginRequest;
 import com.threedotthree.presentation.szs.request.SignUpRequest;
@@ -63,6 +60,14 @@ public class SzsController {
 
         ScrapRestAPIInfoDTO scrapRestAPIInfoDTO = userApplication.scrap(request);
         return new ScrapResponse(scrapRestAPIInfoDTO);
+    }
+
+    @ApiOperation(value = "환급액")
+    @GetMapping(value = "/refund")
+    public RefundDTO refund(HttpServletRequest request) {
+        log.info("Request : {}", request);
+
+        return userApplication.refund(request);
     }
 
 }
