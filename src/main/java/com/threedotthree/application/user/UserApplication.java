@@ -144,6 +144,7 @@ public class UserApplication {
      * @param request : HttpServletRequest
      * @return UserViewDTO
      */
+    @Transactional(readOnly = true)
     public UserViewDTO me(HttpServletRequest request) throws Exception {
 
         User user = userFindSpecification.findByToken(request);
@@ -160,14 +161,10 @@ public class UserApplication {
      * @param request : HttpServletRequest
      * @return ScrapInfoDTO
      */
+    @Transactional(rollbackFor = Exception.class)
     public ScrapRestAPIInfoDTO scrap(HttpServletRequest request) throws Exception {
 
         User user = userFindSpecification.findByToken(request);
-
-        // 이미 스크랩 했다면 중지
-        List<ScrapCalc> scrapCalcList = user.getScrapCalcList();
-        if (scrapCalcList != null && scrapCalcList.size() > 0)
-            throw new AlreadyDataException("이미 스크랩된 회원입니다.", "scrap");
 
         UserViewDTO userViewDTO = modelMapper.map(user, UserViewDTO.class);
         userViewDTO.setRegNo(SecurityUtil.strToDecrypt(user.getRegNo()));
@@ -226,11 +223,17 @@ public class UserApplication {
 
                 // 데이터 저장
                 if (income > 0 && tax > 0) {
-                    scrapCalcJpaRepository.save(ScrapCalc.builder()
-                        .user(user)
-                        .income(income)
-                        .tax(tax)
-                        .build());
+                    ScrapCalc scrapCalc = scrapCalcJpaRepository.findByUserUserSeqId(user.getUserSeqId()).orElse(null);
+
+                    if (scrapCalc == null)
+                        scrapCalcJpaRepository.save(ScrapCalc.builder()
+                            .user(user)
+                            .income(income)
+                            .tax(tax)
+                            .build());
+                    else {
+                        scrapCalc.update(income, tax);
+                    }
                 }
             }
         }
@@ -244,6 +247,7 @@ public class UserApplication {
      * @param request : HttpServletRequest
      * @return RefundDTO
      */
+    @Transactional(readOnly = true)
     public RefundDTO refund(HttpServletRequest request) {
 
         User user = userFindSpecification.findByToken(request);
