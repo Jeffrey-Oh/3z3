@@ -2,6 +2,7 @@ package com.threedotthree.presentation.szs;
 
 import com.threedotthree.application.response.dto.*;
 import com.threedotthree.application.user.UserApplication;
+import com.threedotthree.domain.model.scrapCalc.ScrapCalc;
 import com.threedotthree.domain.model.scrapCalc.ScrapCalcJpaRepository;
 import com.threedotthree.domain.model.user.User;
 import com.threedotthree.domain.model.user.UserJpaRepository;
@@ -342,12 +343,18 @@ public class SzsServiceTest {
         String salt = SecurityUtil.generateSalt();
         String hashPassword = SecurityUtil.passwordHash("qlqjs123", salt);
 
-        userJpaRepository.save(User.builder()
+        User user = userJpaRepository.save(User.builder()
             .userId("test")
             .password(hashPassword)
             .name("홍길동")
             .regNo(SecurityUtil.strToEncrypt("860824-1655068"))
             .salt(salt)
+            .build());
+
+        scrapCalcJpaRepository.save(ScrapCalc.builder()
+            .user(user)
+            .income(1000L)
+            .tax(1000L)
             .build());
 
         LoginRequest loginRequest = LoginRequest.builder()
@@ -359,12 +366,6 @@ public class SzsServiceTest {
 
         // when
         request.addHeader(HttpHeaders.AUTHORIZATION, loginResultDTO.getAccessToken());
-        ScrapRestAPIInfoDTO scrapRestAPIInfoDTO = userApplication.scrap(request);
-
-        // then
-        assertThat(scrapRestAPIInfoDTO.getStatus()).isEqualTo("success");
-
-        // when
         RefundDTO refundDTO = userApplication.refund(request);
 
         // then
