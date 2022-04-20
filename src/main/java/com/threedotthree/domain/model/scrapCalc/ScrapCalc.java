@@ -1,10 +1,9 @@
 package com.threedotthree.domain.model.scrapCalc;
 
 import com.threedotthree.domain.model.user.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
@@ -14,6 +13,9 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
+@DynamicUpdate
+@ToString
 public class ScrapCalc {
     
     @Id
@@ -30,5 +32,13 @@ public class ScrapCalc {
     
     @Column(name = "tax", nullable = false)
     public long tax;
+
+    /**
+     * 업데이트
+     */
+    public void update(long income, long tax) {
+        this.income = income;
+        this.tax = tax;
+    }
 
 }

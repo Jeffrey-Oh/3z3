@@ -37,8 +37,8 @@ public class UserFindSpecification {
         // 토큰 없을 시 인증 실패
         if (token == null || token.isEmpty()) throw new TokenExpiredException();
 
-        int seqId = jwtTokenUtil.getUserSeqId(token);
+        int userSeqId = jwtTokenUtil.getUserSeqId(token);
 
-        return userJpaRepository.findByUserSeqId(seqId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
+        return userJpaRepository.findByUserSeqId(userSeqId).orElseThrow(() -> new NotFoundDataException("조회된 유저정보가 없습니다.", "User"));
     }
 }
